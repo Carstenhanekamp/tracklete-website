@@ -51,8 +51,8 @@ function crPath(pts: { x: number; y: number }[]): string {
 // SVG chart geometry: plot area x 42–690, y 10–167; labels at x < 42 or inside
 const _CL = 42, _CR = 690, _CT = 10, _CB = 167, _CW = 648, _CH = 157;
 const _dx    = (i: number) => _CL + (i / (fitData.length - 1)) * _CW;
-const _fitY  = (v: number) => _CB - ((v - 20) / 70) * _CH;   // range 20–90
-const _tsbY  = (v: number) => _CB - ((v + 30) / 60) * _CH;   // range –30 to +30
+const _fitY  = (v: number) => _CB - ((v - 15) / 85) * _CH;   // range 15–100 (ATL peaks ~93)
+const _tsbY  = (v: number) => _CB - ((v + 40) / 70) * _CH;   // range –40 to +30 (TSB bottoms ~–33)
 const _acwrY = (v: number) => _CB - (v / 2.0) * _CH;           // range 0–2.0
 
 const _ctlPath  = crPath(fitData.map((d, i) => ({ x: _dx(i), y: _fitY(d.ctl) })));
@@ -430,7 +430,7 @@ export function Homepage() {
                 </div>
                 <svg viewBox="0 0 760 197" className="w-full block" onMouseMove={onFitMove} onMouseLeave={onFitLeave} style={{cursor:'crosshair'}}>
                   <text x="9" y="88" fontSize="8" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,9,88)">Load (TSS)</text>
-                  {[30,40,50,60,70,80,90].map(v => {
+                  {[20,30,40,50,60,70,80,90].map(v => {
                     const yv = _fitY(v);
                     return <g key={v}><line x1={_CL} y1={yv} x2={_CR} y2={yv} stroke="#f3f4f6" strokeWidth="1"/><text x={_CL-3} y={yv+3} fontSize="8" fill="#9ca3af" textAnchor="end">{v}</text></g>;
                   })}
@@ -471,14 +471,14 @@ export function Homepage() {
                   <rect x={_CL} y={_tsbY(30)}  width={_CW} height={_tsbY(15)-_tsbY(30)}  fill="rgba(134,239,172,0.22)"/>
                   <rect x={_CL} y={_tsbY(15)}  width={_CW} height={_tsbY(0)-_tsbY(15)}   fill="rgba(156,163,175,0.10)"/>
                   <rect x={_CL} y={_tsbY(0)}   width={_CW} height={_tsbY(-10)-_tsbY(0)}  fill="rgba(134,239,172,0.18)"/>
-                  <rect x={_CL} y={_tsbY(-25)} width={_CW} height={_tsbY(-30)-_tsbY(-25)} fill="rgba(248,113,113,0.22)"/>
+                  <rect x={_CL} y={_tsbY(-30)} width={_CW} height={_tsbY(-40)-_tsbY(-30)} fill="rgba(248,113,113,0.22)"/>
                   {/* Zone labels – right-aligned INSIDE chart */}
                   <text x={_CR-5} y={_tsbY(30)+(_tsbY(15)-_tsbY(30))/2+3}  fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Freshness</text>
                   <text x={_CR-5} y={_tsbY(15)+(_tsbY(0)-_tsbY(15))/2+3}   fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Grey Zone</text>
                   <text x={_CR-5} y={_tsbY(0)+(_tsbY(-10)-_tsbY(0))/2+3}   fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Optimal</text>
-                  <text x={_CR-5} y={_tsbY(-25)+(_tsbY(-30)-_tsbY(-25))/2+3} fontSize="7.5" fill="#dc2626" textAnchor="end" fontStyle="italic">High Risk</text>
+                  <text x={_CR-5} y={_tsbY(-30)+(_tsbY(-40)-_tsbY(-30))/2+3} fontSize="7.5" fill="#dc2626" textAnchor="end" fontStyle="italic">High Risk</text>
                   {/* Grid lines */}
-                  {[30,20,10,0,-10,-20,-30].map(v => {
+                  {[30,20,10,0,-10,-20,-30,-40].map(v => {
                     const yv = _tsbY(v);
                     return <g key={v}><line x1={_CL} y1={yv} x2={_CR} y2={yv} stroke={v===0?'#9ca3af':'#f3f4f6'} strokeWidth={v===0?0.75:1} strokeDasharray={v===0?'4 3':undefined}/><text x={_CL-3} y={yv+3} fontSize="8" fill="#9ca3af" textAnchor="end">{v}</text></g>;
                   })}
