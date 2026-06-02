@@ -1,9 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './_group.css';
 import { Check, ArrowRight, Menu } from 'lucide-react';
 
 export function Homepage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -17,8 +24,14 @@ export function Homepage() {
       { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     );
 
+    // Skip elements already in the viewport on load (hero content)
     document.querySelectorAll('.reveal-hidden').forEach((el) => {
-      observerRef.current?.observe(el);
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) {
+        (el as HTMLElement).classList.add('reveal-visible');
+      } else {
+        observerRef.current?.observe(el);
+      }
     });
 
     return () => observerRef.current?.disconnect();
@@ -27,40 +40,69 @@ export function Homepage() {
   return (
     <div className="font-body bg-tracklete-offwhite text-tracklete-body min-h-screen overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-tracklete-offwhite/90 backdrop-blur-md border-b border-tracklete-soft">
+      <nav
+        className="fixed top-0 w-full z-50 transition-all duration-300"
+        style={{
+          background: scrolled ? 'rgba(248, 246, 241, 0.95)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(12px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(26,36,38,0.10)' : '1px solid transparent',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-12">
-            <a href="#" className="font-display text-2xl font-semibold text-tracklete-accent tracking-tight">
-              Tracklete
+            <a href="#">
+              <img
+                src="/__mockup/images/tracklete-logo.png"
+                alt="Tracklete"
+                className="h-9 w-auto"
+                style={{ filter: scrolled ? 'brightness(0.9)' : 'none' }}
+              />
             </a>
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-tracklete-muted">
-              <a href="#" className="hover:text-tracklete-body transition-colors">Features</a>
-              <a href="#" className="hover:text-tracklete-body transition-colors">Pricing</a>
-              <a href="#" className="hover:text-tracklete-body transition-colors">Blog</a>
-              <a href="#" className="hover:text-tracklete-body transition-colors">Contact</a>
+            <div
+              className="hidden md:flex items-center gap-8 text-sm font-medium transition-colors duration-300"
+              style={{ color: scrolled ? '#5a6b6e' : 'rgba(255,255,255,0.85)' }}
+            >
+              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Features</a>
+              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
+              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Blog</a>
+              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Contact</a>
             </div>
           </div>
           <div className="hidden md:flex items-center gap-6">
-            <a href="#" className="text-sm font-medium hover:text-tracklete-accent transition-colors">Log in</a>
+            <a
+              href="#"
+              className="text-sm font-medium transition-colors duration-300"
+              style={{ color: scrolled ? '#1a2426' : 'rgba(255,255,255,0.9)' }}
+            >
+              Log in
+            </a>
             <a href="#" className="bg-tracklete-accent text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-tracklete-accent-strong transition-colors shadow-sm">
               Book a Demo
             </a>
           </div>
-          <button className="md:hidden text-tracklete-body">
+          <button className="md:hidden" style={{ color: scrolled ? '#1a2426' : 'white' }}>
             <Menu className="w-6 h-6" />
           </button>
         </div>
       </nav>
 
       {/* Hero */}
-      <header className="relative pt-20 h-[90vh] min-h-[700px] flex items-center bg-tracklete-dark">
+      <header className="relative pt-0 h-[90vh] min-h-[700px] flex items-center bg-tracklete-dark">
         <div className="absolute inset-0 overflow-hidden">
           <img 
             src="/__mockup/images/rowing-four-reflection.jpg" 
             alt="Four-person crew on a mirror-calm river" 
-            className="w-full h-full object-cover opacity-60"
+            className="w-full h-full object-cover"
+            style={{ opacity: 0.75 }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-tracklete-dark via-transparent to-transparent"></div>
+          {/* Strong left-side gradient so text is always readable */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to right, rgba(15,26,28,0.85) 0%, rgba(15,26,28,0.55) 55%, rgba(15,26,28,0.15) 100%)'
+          }} />
+          {/* Bottom vignette */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to top, rgba(15,26,28,0.7) 0%, transparent 50%)'
+          }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full mt-20">
           <div className="max-w-3xl reveal-hidden">
