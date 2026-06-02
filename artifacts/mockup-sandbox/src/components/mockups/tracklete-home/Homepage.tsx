@@ -253,7 +253,7 @@ export function Homepage() {
             <div className="reveal-hidden">
               <div className="inline-block px-3 py-1 bg-tracklete-accent-soft text-tracklete-accent font-semibold text-xs uppercase tracking-widest mb-6">Planning & Attendance</div>
               <h2 className="font-display text-4xl lg:text-5xl text-tracklete-accent-strong mb-6 leading-tight">
-                No more WhatsApp polls. Just clear schedules.
+                No more WhatsApp polls or excel sheets. Just clear schedules.
               </h2>
               <p className="text-lg text-tracklete-muted mb-8 leading-relaxed">
                 Publish the weekly training plan and let athletes RSVP. You get a perfect view of who's showing up, allowing you to set lineups with confidence before anyone arrives at the boathouse.
