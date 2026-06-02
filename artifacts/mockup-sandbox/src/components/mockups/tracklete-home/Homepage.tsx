@@ -2,9 +2,82 @@ import React, { useEffect, useRef, useState } from 'react';
 import './_group.css';
 import { Check, ArrowRight, Menu } from 'lucide-react';
 
+// ── CTL / ATL / TSB / ACWR data ──────────────────────────────────────────────
+// CTL = 42-day EMA (chronic fitness), ATL = 7-day EMA (acute fatigue)
+// TSB = CTL − ATL  (form/freshness), ACWR = ATL / CTL  (workload ratio)
+const _kCTL = 1 - Math.exp(-1 / 42);
+const _kATL = 1 - Math.exp(-1 / 7);
+// 12-week progressive rowing block: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] TSS
+const _plan: number[][] = [
+  [0, 95, 55, 130, 85, 150, 45],    // wk 1 – base build
+  [0, 100, 60, 140, 90, 155, 50],   // wk 2
+  [0, 105, 65, 145, 95, 160, 50],   // wk 3
+  [0, 60, 40, 80, 55, 90, 30],      // wk 4 – recovery
+  [0, 110, 65, 150, 100, 165, 55],  // wk 5 – higher build
+  [0, 115, 70, 155, 100, 170, 55],  // wk 6
+  [0, 115, 70, 158, 100, 170, 55],  // wk 7
+  [0, 65, 40, 85, 55, 95, 30],      // wk 8 – recovery
+  [0, 110, 70, 155, 100, 168, 55],  // wk 9 – race prep
+  [0, 115, 70, 160, 100, 168, 55],  // wk 10
+  [0, 100, 60, 140, 90, 155, 50],   // wk 11 – sharpen
+  [0, 70, 45, 95, 60, 100, 35],     // wk 12 – taper
+];
+type FDay = { ctl: number; atl: number; tsb: number; acwr: number };
+const fitData: FDay[] = (() => {
+  let ctl = 45, atl = 45;
+  return _plan.flatMap(week =>
+    week.map(tss => {
+      ctl += (tss - ctl) * _kCTL;
+      atl += (tss - atl) * _kATL;
+      return { ctl, atl, tsb: ctl - atl, acwr: ctl > 0 ? atl / ctl : 1 };
+    })
+  );
+})();
+
+// Catmull-Rom spline → SVG cubic bezier path (smooth curves)
+function crPath(pts: { x: number; y: number }[]): string {
+  if (pts.length < 2) return '';
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i];
+    const p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+// SVG chart geometry: plot area x 42–690, y 10–167; labels at x < 42 or inside
+const _CL = 42, _CR = 690, _CT = 10, _CB = 167, _CW = 648, _CH = 157;
+const _dx    = (i: number) => _CL + (i / (fitData.length - 1)) * _CW;
+const _fitY  = (v: number) => _CB - ((v - 20) / 70) * _CH;   // range 20–90
+const _tsbY  = (v: number) => _CB - ((v + 30) / 60) * _CH;   // range –30 to +30
+const _acwrY = (v: number) => _CB - (v / 2.0) * _CH;           // range 0–2.0
+
+const _ctlPath  = crPath(fitData.map((d, i) => ({ x: _dx(i), y: _fitY(d.ctl) })));
+const _atlPath  = crPath(fitData.map((d, i) => ({ x: _dx(i), y: _fitY(d.atl) })));
+const _tsbPath  = crPath(fitData.map((d, i) => ({ x: _dx(i), y: _tsbY(d.tsb) })));
+const _acwrPath = crPath(fitData.map((d, i) => ({ x: _dx(i), y: _acwrY(d.acwr) })));
+const _ctlFill  = _ctlPath + ` L${_dx(fitData.length - 1).toFixed(1)},${_CB} L${_dx(0).toFixed(1)},${_CB} Z`;
+
+const _startMs = new Date(2026, 2, 9).getTime();
+const _mos = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const _dayLabel = (i: number) => { const d = new Date(_startMs + i * 86400000); return `${d.getDate()} ${_mos[d.getMonth()]}`; };
+const _xDates = ['9 mrt','23 mrt','6 apr','20 apr','4 mei','18 mei','1 jun'];
+
 export function Homepage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [fitIdx, setFitIdx] = useState<number | null>(null);
+
+  const onFitMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const svgX = (e.clientX - r.left) * (760 / r.width);
+    const raw = Math.round(((svgX - _CL) / _CW) * (fitData.length - 1));
+    setFitIdx(Math.max(0, Math.min(fitData.length - 1, raw)));
+  };
+  const onFitLeave = () => setFitIdx(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -324,11 +397,11 @@ export function Homepage() {
           <div className="reveal-hidden stagger-1 max-w-5xl mx-auto">
 
             {/* Info box */}
-            <div className="flex items-start justify-between gap-4 bg-amber-50 border border-amber-200 rounded-md px-5 py-4 mb-4 text-sm">
+            <div className="flex items-start justify-between gap-4 bg-amber-50 border border-amber-200 rounded-md px-5 py-4 mb-5 text-sm">
               <div>
                 <p className="font-semibold text-amber-900 mb-1">Understanding your fitness metrics</p>
                 <p className="text-amber-800 leading-relaxed">
-                  Three graphs built from your GPS heart rate data: Fitness &amp; Fatigue, Form (TSB), and Workload Ratio (ACWR). Load is calculated using the T2minute method developed for elite rowing at the Australian Institute of Sport.
+                  Three graphs built from your GPS heart rate data: Fitness &amp; Fatigue, Form (TSB), and Workload Ratio (ACWR). TSB = CTL − ATL. Hover any chart to inspect daily values.
                 </p>
               </div>
               <button className="flex-shrink-0 bg-tracklete-accent text-white text-xs font-semibold px-3 py-1.5 rounded">Read more...</button>
@@ -337,115 +410,138 @@ export function Homepage() {
             {/* Chart wrapper */}
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
 
-              {/* Time buttons + title row */}
+              {/* Header: title + time period buttons */}
               <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
                 <span className="font-bold text-gray-800">Fitness</span>
                 <div className="flex gap-1 text-xs font-medium">
                   {['42 days','3 months','6 months','1 year','All'].map(p => (
-                    <button key={p} style={p==='3 months' ? {background:'#0d7377',color:'#fff',borderRadius:'4px',padding:'3px 10px'} : {color:'#5a6b6e',padding:'3px 10px',borderRadius:'4px',border:'1px solid #e5e7eb'}}>
+                    <button key={p} style={p==='3 months'?{background:'#0d7377',color:'#fff',borderRadius:'4px',padding:'3px 10px'}:{color:'#5a6b6e',padding:'3px 10px',borderRadius:'4px',border:'1px solid #e5e7eb'}}>
                       {p}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* ── Chart 1: Fitness (CTL + ATL) ── */}
-              <div className="px-4 pt-3 pb-1">
-                {/* Legend */}
-                <div className="flex justify-center gap-8 text-xs mb-1">
-                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:28,height:2,background:'#0d7377',verticalAlign:'middle'}}></span> CTL – Fitness</span>
-                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:28,height:2,background:'#e0305a',verticalAlign:'middle'}}></span> ATL – Fatigue</span>
+              {/* ── Chart 1: Fitness – CTL (smooth, rising) + ATL (spiky, bouncing) ── */}
+              <div className="px-2 pt-3 pb-1">
+                <div className="flex justify-center gap-8 text-xs mb-1 text-gray-500">
+                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:22,height:2,background:'#0d7377',verticalAlign:'middle'}}/> CTL – Fitness</span>
+                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:22,height:2,background:'#e0305a',verticalAlign:'middle'}}/> ATL – Fatigue</span>
                 </div>
-                <svg viewBox="0 0 770 195" className="w-full" style={{display:'block'}}>
-                  {/* Y-axis label */}
-                  <text x="8" y="100" fontSize="9" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,8,100)">Load (TSS)</text>
-                  {/* Y axis ticks */}
-                  {[20,30,40,50,60,70,80].map((v,i) => {
-                    const yv = 165 - ((v-20)/60)*155;
-                    return <g key={v}><line x1="45" y1={yv} x2="755" y2={yv} stroke="#f3f4f6" strokeWidth="1"/><text x="42" y={yv+3} fontSize="9" fill="#9ca3af" textAnchor="end">{v}</text></g>;
+                <svg viewBox="0 0 760 197" className="w-full block" onMouseMove={onFitMove} onMouseLeave={onFitLeave} style={{cursor:'crosshair'}}>
+                  <text x="9" y="88" fontSize="8" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,9,88)">Load (TSS)</text>
+                  {[30,40,50,60,70,80,90].map(v => {
+                    const yv = _fitY(v);
+                    return <g key={v}><line x1={_CL} y1={yv} x2={_CR} y2={yv} stroke="#f3f4f6" strokeWidth="1"/><text x={_CL-3} y={yv+3} fontSize="8" fill="#9ca3af" textAnchor="end">{v}</text></g>;
                   })}
-                  {/* CTL – smooth teal line */}
-                  <path d="M45,62 C80,61 115,63 165,67 C210,70 250,72 285,74 C325,76 365,78 404,79 C445,81 480,83 524,85 C565,87 605,90 644,92 C685,94 720,98 755,103" fill="none" stroke="#0d7377" strokeWidth="2.5" strokeLinecap="round"/>
-                  {/* CTL area fill */}
-                  <path d="M45,62 C80,61 115,63 165,67 C210,70 250,72 285,74 C325,76 365,78 404,79 C445,81 480,83 524,85 C565,87 605,90 644,92 C685,94 720,98 755,103 L755,165 L45,165 Z" fill="rgba(13,115,119,0.06)"/>
-                  {/* ATL – spiky red line */}
-                  <polyline points="45,62 75,48 100,108 130,57 155,98 185,41 210,75 240,86 265,52 295,118 320,63 350,88 375,48 405,108 430,67 460,52 485,102 515,40 545,92 575,48 605,138 635,73 665,58 695,105 720,44 755,88" fill="none" stroke="#e0305a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  {/* X-axis date labels */}
-                  {['9 mrt','23 mrt','6 apr','20 apr','4 mei','18 mei','1 jun'].map((d,i) => (
-                    <text key={d} x={45 + i*(710/6)} y="183" fontSize="9" fill="#9ca3af" textAnchor="middle">{d}</text>
-                  ))}
+                  <path d={_ctlFill} fill="rgba(13,115,119,0.07)"/>
+                  <path d={_ctlPath} fill="none" stroke="#0d7377" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d={_atlPath} fill="none" stroke="#e0305a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1={_CL} y1={_CT} x2={_CL} y2={_CB} stroke="#e5e7eb" strokeWidth="1"/>
+                  <line x1={_CL} y1={_CB} x2={_CR} y2={_CB} stroke="#e5e7eb" strokeWidth="1"/>
+                  {_xDates.map((lbl, i) => <text key={i} x={_CL+i*(_CW/6)} y="185" fontSize="8" fill="#9ca3af" textAnchor="middle">{lbl}</text>)}
+                  {fitIdx !== null && (() => {
+                    const fd = fitData[fitIdx], x = _dx(fitIdx);
+                    const flip = fitIdx > fitData.length * 0.6;
+                    const tx = flip ? x - 98 : x + 8;
+                    return (
+                      <g>
+                        <line x1={x} y1={_CT} x2={x} y2={_CB} stroke="#9ca3af" strokeWidth="1" strokeDasharray="3 3"/>
+                        <circle cx={x} cy={_fitY(fd.ctl)} r="3.5" fill="#0d7377" stroke="white" strokeWidth="1.5"/>
+                        <circle cx={x} cy={_fitY(fd.atl)} r="3.5" fill="#e0305a" stroke="white" strokeWidth="1.5"/>
+                        <rect x={tx} y={_CT+4} width="94" height="56" rx="4" fill="white" stroke="#e5e7eb" strokeWidth="1" style={{filter:'drop-shadow(0 1px 4px rgba(0,0,0,0.10))'}}/>
+                        <text x={tx+6} y={_CT+17} fontSize="8.5" fill="#374151" fontWeight="600">{_dayLabel(fitIdx)}</text>
+                        <text x={tx+6} y={_CT+30} fontSize="8" fill="#0d7377" fontWeight="600">CTL: {fd.ctl.toFixed(1)}</text>
+                        <text x={tx+6} y={_CT+42} fontSize="8" fill="#e0305a" fontWeight="600">ATL: {fd.atl.toFixed(1)}</text>
+                        <text x={tx+6} y={_CT+54} fontSize="8" fill="#6b7280">TSB: {fd.tsb.toFixed(1)}</text>
+                      </g>
+                    );
+                  })()}
                 </svg>
               </div>
 
-              {/* ── Chart 2: Form (TSB) ── */}
-              <div className="px-4 pt-2 pb-1 border-t border-gray-100">
-                <div className="flex justify-center text-xs mb-1">
-                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:28,height:2,background:'#d97706',verticalAlign:'middle',borderTop:'2px solid #d97706'}}></span> TSB – Form</span>
+              {/* ── Chart 2: Form (TSB = CTL − ATL) ── */}
+              <div className="px-2 pt-2 pb-1 border-t border-gray-100">
+                <div className="flex justify-center text-xs mb-1 text-gray-500">
+                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:22,height:2,background:'#d97706',verticalAlign:'middle'}}/> TSB – Form</span>
                 </div>
-                <svg viewBox="0 0 770 195" className="w-full" style={{display:'block'}}>
-                  <text x="8" y="100" fontSize="9" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,8,100)">Form (TSB)</text>
-                  {/* Background zones */}
-                  {/* Transitional Freshness: v=15 to 30, y=15 to 48 */}
-                  <rect x="45" y="15" width="710" height="33" fill="rgba(134,239,172,0.25)"/>
-                  {/* Grey Zone: v=0 to 15, y=48 to 81 */}
-                  <rect x="45" y="48" width="710" height="33" fill="rgba(156,163,175,0.12)"/>
-                  {/* Optimal Training: v=-10 to 0, y=81 to 114 */}
-                  <rect x="45" y="81" width="710" height="33" fill="rgba(134,239,172,0.2)"/>
-                  {/* High Risk: v=-30 to -40, y=148 to 165 */}
-                  <rect x="45" y="148" width="710" height="17" fill="rgba(248,113,113,0.25)"/>
-                  {/* Zone labels on right */}
-                  <text x="758" y="33" fontSize="7.5" fill="#6b7280" textAnchor="start">Transitional</text>
-                  <text x="758" y="42" fontSize="7.5" fill="#6b7280" textAnchor="start">Freshness</text>
-                  <text x="758" y="67" fontSize="7.5" fill="#6b7280" textAnchor="start">Grey Zone</text>
-                  <text x="758" y="98" fontSize="7.5" fill="#6b7280" textAnchor="start">Optimal</text>
-                  <text x="758" y="107" fontSize="7.5" fill="#6b7280" textAnchor="start">Training</text>
-                  <text x="758" y="157" fontSize="7.5" fill="#ef4444" textAnchor="start">High Risk</text>
-                  {/* Y axis ticks */}
-                  {[30,20,10,0,-10,-20,-30,-40].map(v => {
-                    const yv = 165 - ((v+40)/70)*150;
-                    return <g key={v}><line x1="45" y1={yv} x2="755" y2={yv} stroke="#f3f4f6" strokeWidth="1"/><text x="42" y={yv+3} fontSize="9" fill="#9ca3af" textAnchor="end">{v}</text></g>;
+                <svg viewBox="0 0 760 197" className="w-full block" onMouseMove={onFitMove} onMouseLeave={onFitLeave} style={{cursor:'crosshair'}}>
+                  <text x="9" y="88" fontSize="8" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,9,88)">Form (TSB)</text>
+                  {/* Coloured zone bands */}
+                  <rect x={_CL} y={_tsbY(30)}  width={_CW} height={_tsbY(15)-_tsbY(30)}  fill="rgba(134,239,172,0.22)"/>
+                  <rect x={_CL} y={_tsbY(15)}  width={_CW} height={_tsbY(0)-_tsbY(15)}   fill="rgba(156,163,175,0.10)"/>
+                  <rect x={_CL} y={_tsbY(0)}   width={_CW} height={_tsbY(-10)-_tsbY(0)}  fill="rgba(134,239,172,0.18)"/>
+                  <rect x={_CL} y={_tsbY(-25)} width={_CW} height={_tsbY(-30)-_tsbY(-25)} fill="rgba(248,113,113,0.22)"/>
+                  {/* Zone labels – right-aligned INSIDE chart */}
+                  <text x={_CR-5} y={_tsbY(30)+(_tsbY(15)-_tsbY(30))/2+3}  fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Freshness</text>
+                  <text x={_CR-5} y={_tsbY(15)+(_tsbY(0)-_tsbY(15))/2+3}   fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Grey Zone</text>
+                  <text x={_CR-5} y={_tsbY(0)+(_tsbY(-10)-_tsbY(0))/2+3}   fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Optimal</text>
+                  <text x={_CR-5} y={_tsbY(-25)+(_tsbY(-30)-_tsbY(-25))/2+3} fontSize="7.5" fill="#dc2626" textAnchor="end" fontStyle="italic">High Risk</text>
+                  {/* Grid lines */}
+                  {[30,20,10,0,-10,-20,-30].map(v => {
+                    const yv = _tsbY(v);
+                    return <g key={v}><line x1={_CL} y1={yv} x2={_CR} y2={yv} stroke={v===0?'#9ca3af':'#f3f4f6'} strokeWidth={v===0?0.75:1} strokeDasharray={v===0?'4 3':undefined}/><text x={_CL-3} y={yv+3} fontSize="8" fill="#9ca3af" textAnchor="end">{v}</text></g>;
                   })}
-                  {/* TSB line */}
-                  <polyline points="45,59 75,53 100,92 130,59 155,88 185,55 210,70 240,99 265,55 295,114 320,63 350,70 375,48 405,99 430,65 460,55 485,99 515,41 545,92 575,48 605,136 635,70 665,55 695,99 720,41 755,81" fill="none" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  {/* Zero line */}
-                  <line x1="45" y1="81" x2="755" y2="81" stroke="#9ca3af" strokeWidth="0.75" strokeDasharray="4 3"/>
-                  {/* X-axis dates */}
-                  {['9 mrt','23 mrt','6 apr','20 apr','4 mei','18 mei','1 jun'].map((d,i) => (
-                    <text key={d} x={45 + i*(710/6)} y="183" fontSize="9" fill="#9ca3af" textAnchor="middle">{d}</text>
-                  ))}
+                  <path d={_tsbPath} fill="none" stroke="#d97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1={_CL} y1={_CT} x2={_CL} y2={_CB} stroke="#e5e7eb" strokeWidth="1"/>
+                  <line x1={_CL} y1={_CB} x2={_CR} y2={_CB} stroke="#e5e7eb" strokeWidth="1"/>
+                  {_xDates.map((lbl, i) => <text key={i} x={_CL+i*(_CW/6)} y="185" fontSize="8" fill="#9ca3af" textAnchor="middle">{lbl}</text>)}
+                  {fitIdx !== null && (() => {
+                    const fd = fitData[fitIdx], x = _dx(fitIdx);
+                    const flip = fitIdx > fitData.length * 0.6;
+                    const tx = flip ? x - 84 : x + 8;
+                    return (
+                      <g>
+                        <line x1={x} y1={_CT} x2={x} y2={_CB} stroke="#9ca3af" strokeWidth="1" strokeDasharray="3 3"/>
+                        <circle cx={x} cy={_tsbY(fd.tsb)} r="3.5" fill="#d97706" stroke="white" strokeWidth="1.5"/>
+                        <rect x={tx} y={_CT+4} width="80" height="40" rx="4" fill="white" stroke="#e5e7eb" strokeWidth="1" style={{filter:'drop-shadow(0 1px 4px rgba(0,0,0,0.10))'}}/>
+                        <text x={tx+6} y={_CT+17} fontSize="8.5" fill="#374151" fontWeight="600">{_dayLabel(fitIdx)}</text>
+                        <text x={tx+6} y={_CT+30} fontSize="8" fill="#d97706" fontWeight="600">TSB: {fd.tsb.toFixed(1)}</text>
+                      </g>
+                    );
+                  })()}
                 </svg>
               </div>
 
-              {/* ── Chart 3: ACWR ── */}
-              <div className="px-4 pt-2 pb-3 border-t border-gray-100">
-                <div className="flex justify-center text-xs mb-1">
-                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:28,height:2,background:'#3b82f6',verticalAlign:'middle'}}></span> ACWR</span>
+              {/* ── Chart 3: ACWR (ATL / CTL workload ratio) ── */}
+              <div className="px-2 pt-2 pb-3 border-t border-gray-100">
+                <div className="flex justify-center text-xs mb-1 text-gray-500">
+                  <span className="flex items-center gap-1.5"><span style={{display:'inline-block',width:22,height:2,background:'#3b82f6',verticalAlign:'middle'}}/> ACWR</span>
                 </div>
-                <svg viewBox="0 0 770 195" className="w-full" style={{display:'block'}}>
-                  <text x="8" y="100" fontSize="9" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,8,100)">ACWR</text>
-                  {/* Background zones: scale 0-2, y: 165-15, range=150px, 1 unit = 75px */}
-                  {/* Injury Risk: 1.5-2.0 → y: 15-52.5 */}
-                  <rect x="45" y="15" width="710" height="37.5" fill="rgba(248,113,113,0.2)"/>
-                  {/* Sweet Spot: 0.8-1.3 → y: 52.5+26=78.5 to 52.5+26+37.5=116 wait let me recalc */}
-                  {/* y = 165 - (v/2)*150 → v=1.5: 165-112.5=52.5, v=1.3: 165-97.5=67.5, v=0.8: 165-60=105 */}
-                  <rect x="45" y="67.5" width="710" height="37.5" fill="rgba(134,239,172,0.2)"/>
-                  {/* Undertraining: 0-0.8 → y: 105-165 */}
-                  <rect x="45" y="105" width="710" height="60" fill="rgba(147,197,253,0.2)"/>
+                <svg viewBox="0 0 760 197" className="w-full block" onMouseMove={onFitMove} onMouseLeave={onFitLeave} style={{cursor:'crosshair'}}>
+                  <text x="9" y="88" fontSize="8" fill="#9ca3af" textAnchor="middle" transform="rotate(-90,9,88)">ACWR</text>
+                  {/* Zone bands */}
+                  <rect x={_CL} y={_acwrY(2.0)} width={_CW} height={_acwrY(1.5)-_acwrY(2.0)} fill="rgba(248,113,113,0.20)"/>
+                  <rect x={_CL} y={_acwrY(1.3)} width={_CW} height={_acwrY(0.8)-_acwrY(1.3)} fill="rgba(134,239,172,0.20)"/>
+                  <rect x={_CL} y={_acwrY(0.8)} width={_CW} height={_acwrY(0)-_acwrY(0.8)}   fill="rgba(147,197,253,0.18)"/>
                   {/* Zone labels */}
-                  <text x="758" y="36" fontSize="7.5" fill="#ef4444" textAnchor="start">Injury Risk</text>
-                  <text x="758" y="88" fontSize="7.5" fill="#6b7280" textAnchor="start">Sweet Spot</text>
-                  <text x="758" y="138" fontSize="7.5" fill="#6b7280" textAnchor="start">Undertraining</text>
-                  {/* Y axis ticks */}
-                  {[2.0,1.8,1.6,1.4,1.2,1.0,0.8,0.6,0.4,0.2,0].map(v => {
-                    const yv = 165 - (v/2)*150;
-                    return <g key={v}><line x1="45" y1={yv} x2="755" y2={yv} stroke="#f3f4f6" strokeWidth="1"/><text x="42" y={yv+3} fontSize="9" fill="#9ca3af" textAnchor="end">{v.toFixed(1)}</text></g>;
+                  <text x={_CR-5} y={_acwrY(2.0)+(_acwrY(1.5)-_acwrY(2.0))/2+3}  fontSize="7.5" fill="#dc2626" textAnchor="end" fontStyle="italic">Injury Risk</text>
+                  <text x={_CR-5} y={_acwrY(1.3)+(_acwrY(0.8)-_acwrY(1.3))/2+3}  fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Sweet Spot</text>
+                  <text x={_CR-5} y={_acwrY(0.8)+(_acwrY(0)-_acwrY(0.8))/2+3}    fontSize="7.5" fill="#6b7280" textAnchor="end" fontStyle="italic">Undertraining</text>
+                  {/* Grid lines */}
+                  {[0,0.5,1.0,1.5,2.0].map(v => {
+                    const yv = _acwrY(v);
+                    return <g key={v}><line x1={_CL} y1={yv} x2={_CR} y2={yv} stroke={v===1?'#9ca3af':'#f3f4f6'} strokeWidth={v===1?0.75:1} strokeDasharray={v===1?'4 3':undefined}/><text x={_CL-3} y={yv+3} fontSize="8" fill="#9ca3af" textAnchor="end">{v.toFixed(1)}</text></g>;
                   })}
-                  {/* ACWR line */}
-                  <polyline points="45,90 75,82 100,101 130,76 155,105 185,71 210,90 240,97 265,82 295,116 320,90 350,101 375,90 405,105 430,90 460,86 485,105 515,75 545,101 575,86 605,120 635,97 665,86 695,105 720,76 755,105" fill="none" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  {/* X-axis dates */}
-                  {['9 mrt','23 mrt','6 apr','20 apr','4 mei','18 mei','1 jun'].map((d,i) => (
-                    <text key={d} x={45 + i*(710/6)} y="183" fontSize="9" fill="#9ca3af" textAnchor="middle">{d}</text>
-                  ))}
+                  <path d={_acwrPath} fill="none" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1={_CL} y1={_CT} x2={_CL} y2={_CB} stroke="#e5e7eb" strokeWidth="1"/>
+                  <line x1={_CL} y1={_CB} x2={_CR} y2={_CB} stroke="#e5e7eb" strokeWidth="1"/>
+                  {_xDates.map((lbl, i) => <text key={i} x={_CL+i*(_CW/6)} y="185" fontSize="8" fill="#9ca3af" textAnchor="middle">{lbl}</text>)}
+                  {fitIdx !== null && (() => {
+                    const fd = fitData[fitIdx], x = _dx(fitIdx);
+                    const flip = fitIdx > fitData.length * 0.6;
+                    const tx = flip ? x - 88 : x + 8;
+                    const zone = fd.acwr > 1.5 ? 'Injury Risk' : fd.acwr > 1.3 ? 'Mod. Risk' : fd.acwr >= 0.8 ? 'Sweet Spot' : 'Undertraining';
+                    return (
+                      <g>
+                        <line x1={x} y1={_CT} x2={x} y2={_CB} stroke="#9ca3af" strokeWidth="1" strokeDasharray="3 3"/>
+                        <circle cx={x} cy={_acwrY(fd.acwr)} r="3.5" fill="#3b82f6" stroke="white" strokeWidth="1.5"/>
+                        <rect x={tx} y={_CT+4} width="84" height="40" rx="4" fill="white" stroke="#e5e7eb" strokeWidth="1" style={{filter:'drop-shadow(0 1px 4px rgba(0,0,0,0.10))'}}/>
+                        <text x={tx+6} y={_CT+17} fontSize="8.5" fill="#374151" fontWeight="600">{_dayLabel(fitIdx)}</text>
+                        <text x={tx+6} y={_CT+30} fontSize="8" fill="#3b82f6" fontWeight="600">ACWR: {fd.acwr.toFixed(2)} · {zone}</text>
+                      </g>
+                    );
+                  })()}
                 </svg>
               </div>
 
