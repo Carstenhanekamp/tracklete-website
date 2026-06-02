@@ -43,9 +43,9 @@ export function Homepage() {
       <nav
         className="fixed top-0 w-full z-50 transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(248, 246, 241, 0.95)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(26,36,38,0.10)' : '1px solid transparent',
+          background: scrolled ? 'rgba(15, 26, 28, 0.97)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
         }}
       >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -55,32 +55,24 @@ export function Homepage() {
                 src="/__mockup/images/tracklete-logo.png"
                 alt="Tracklete"
                 className="h-9 w-auto"
-                style={{ filter: scrolled ? 'brightness(0.9)' : 'none' }}
               />
             </a>
-            <div
-              className="hidden md:flex items-center gap-8 text-sm font-medium transition-colors duration-300"
-              style={{ color: scrolled ? '#5a6b6e' : 'rgba(255,255,255,0.85)' }}
-            >
-              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Features</a>
-              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Pricing</a>
-              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Blog</a>
-              <a href="#" className="hover:opacity-100 transition-opacity" style={{ opacity: 0.85 }}>Contact</a>
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium" style={{ color: 'rgba(255,255,255,0.75)' }}>
+              <a href="#" className="hover:text-white transition-colors">Features</a>
+              <a href="#" className="hover:text-white transition-colors">Pricing</a>
+              <a href="#" className="hover:text-white transition-colors">Blog</a>
+              <a href="#" className="hover:text-white transition-colors">Contact</a>
             </div>
           </div>
           <div className="hidden md:flex items-center gap-6">
-            <a
-              href="#"
-              className="text-sm font-medium transition-colors duration-300"
-              style={{ color: scrolled ? '#1a2426' : 'rgba(255,255,255,0.9)' }}
-            >
+            <a href="#" className="text-sm font-medium transition-colors hover:text-white" style={{ color: 'rgba(255,255,255,0.8)' }}>
               Log in
             </a>
             <a href="#" className="bg-tracklete-accent text-white px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-tracklete-accent-strong transition-colors shadow-sm">
               Book a Demo
             </a>
           </div>
-          <button className="md:hidden" style={{ color: scrolled ? '#1a2426' : 'white' }}>
+          <button className="md:hidden text-white">
             <Menu className="w-6 h-6" />
           </button>
         </div>
