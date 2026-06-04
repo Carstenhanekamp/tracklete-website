@@ -361,6 +361,12 @@ export function Homepage() {
                     <div className="text-xl font-display font-medium text-tracklete-accent-strong">47 <span className="text-sm text-tracklete-muted font-sans font-normal">bpm</span></div>
                   </div>
                 </div>
+                <div className="mt-4">
+                  <div className="text-xs text-tracklete-muted uppercase tracking-wider font-semibold mb-1.5">Comment</div>
+                  <div className="bg-tracklete-offwhite rounded px-3 py-2 text-sm text-tracklete-body leading-snug">
+                    Legs feel heavy from yesterday's long pieces. Will see how warm-up goes.
+                  </div>
+                </div>
               </div>
             </div>
 
