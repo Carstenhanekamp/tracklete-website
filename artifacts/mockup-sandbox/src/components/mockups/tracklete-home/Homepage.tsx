@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import './_group.css';
 import { Check, ArrowRight, Menu } from 'lucide-react';
 
+// Font override injection — used by variant wrappers
+const _fontStyle = (css: string) => css ? <style dangerouslySetInnerHTML={{ __html: css }} /> : null;
+
 // ── CTL / ATL / TSB / ACWR data ──────────────────────────────────────────────
 // CTL = 42-day EMA (chronic fitness), ATL = 7-day EMA (acute fatigue)
 // TSB = CTL − ATL  (form/freshness), ACWR = ATL / CTL  (workload ratio)
@@ -66,7 +69,7 @@ const _mos = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov',
 const _dayLabel = (i: number) => { const d = new Date(_startMs + i * 86400000); return `${d.getDate()} ${_mos[d.getMonth()]}`; };
 const _xDates = ['9 mrt','23 mrt','6 apr','20 apr','4 mei','18 mei','1 jun'];
 
-export function Homepage() {
+export function Homepage({ fontOverride }: { fontOverride?: string } = {}) {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [fitIdx, setFitIdx] = useState<number | null>(null);
@@ -112,6 +115,7 @@ export function Homepage() {
 
   return (
     <div className="font-body bg-tracklete-offwhite text-tracklete-body min-h-screen overflow-x-hidden">
+      {fontOverride ? _fontStyle(fontOverride) : null}
       {/* Navigation */}
       <nav
         className="fixed top-0 w-full z-50 transition-all duration-300"
