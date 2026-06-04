@@ -556,76 +556,141 @@ export function Homepage() {
         </div>
       </section>
 
-      {/* Product Story: Club Overview */}
+      {/* Product Story: Weekly Analytics */}
       <section className="py-32 bg-tracklete-offwhite bg-grid">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            
+
             <div className="reveal-hidden">
-              <div className="inline-block px-3 py-1 bg-tracklete-accent-soft text-tracklete-accent font-semibold text-xs uppercase tracking-widest mb-6">Coach Dashboard</div>
+              <div className="inline-block px-3 py-1 bg-tracklete-accent-soft text-tracklete-accent font-semibold text-xs uppercase tracking-widest mb-6">Weekly Analytics</div>
               <h2 className="font-display text-4xl lg:text-5xl text-tracklete-accent-strong mb-6 leading-tight">
-                Your squad at a glance.
+                Understand every week at a glance.
               </h2>
               <p className="text-lg text-tracklete-muted mb-8 leading-relaxed">
-                Step into the launch with total confidence. The coach overview rolls up attendance, health flags, and training load into one actionable morning brief.
+                Tracklete automatically summarises each training week: total distance, time by sport, and time spent in each heart rate zone. Coaches can spot trends and flag under- or over-loading before it shows up on the erg.
               </p>
-              
-              <div className="bg-tracklete-panel p-6 rounded-lg shadow-sm border border-tracklete-soft mb-8">
-                <h4 className="font-semibold text-tracklete-body mb-4">Morning Brief</h4>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                    <span className="text-tracklete-body font-medium">12/14 Going tomorrow</span>
+              <ul className="space-y-4">
+                {[
+                  'Automatic weekly summaries per athlete',
+                  'Distance and duration split by activity type',
+                  'Heart rate zone distribution — built from GPS data',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-tracklete-body font-medium">
+                    <div className="w-5 h-5 rounded-full bg-tracklete-accent-soft flex items-center justify-center text-tracklete-accent flex-shrink-0">
+                      <Check className="w-3 h-3" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Weekly Analytics card mockup */}
+            <div className="reveal-hidden stagger-1">
+              <div className="bg-white rounded-lg shadow-xl border border-tracklete-soft p-6">
+
+                {/* Card header */}
+                <div className="mb-5">
+                  <h3 className="font-bold text-lg text-tracklete-accent-strong">Week 23 analytics</h3>
+                  <p className="text-sm text-tracklete-muted">juni 2026</p>
+                </div>
+
+                {/* Distance + Time by activity */}
+                <div className="flex gap-6 mb-6 pb-6 border-b border-tracklete-soft">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-tracklete-muted uppercase tracking-wider font-semibold mb-2">Distance</div>
+                    <div className="font-display text-3xl font-bold text-tracklete-accent-strong mb-1">
+                      11.6 <span className="text-base font-sans font-normal text-tracklete-muted">km</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-red-500 font-medium">
+                      <span>↓</span><span>-35,9 km vs last week</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-tracklete-accent"></div>
-                    <span className="text-tracklete-body font-medium">11 bodystats logged</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                    <span className="text-tracklete-body font-medium">84.2 km crew load</span>
+
+                  <div className="w-px bg-tracklete-soft flex-shrink-0"/>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-tracklete-muted uppercase tracking-wider font-semibold mb-2">Time by activity</div>
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Cycling',  min: 91, delta: '+91',  up: true  },
+                        { label: 'Unlinked', min: 73, delta: '-163', up: false },
+                        { label: 'Rowing',   min: 68, delta: '-116', up: false },
+                      ].map(a => (
+                        <div key={a.label} className="flex items-center gap-2 text-sm">
+                          <span className="text-tracklete-body font-medium w-16 flex-shrink-0">{a.label}</span>
+                          <span className="text-tracklete-muted flex-1">{a.min} min</span>
+                          <span className={`flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded ${a.up ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                            {a.up ? '▲' : '▼'}{a.delta}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="bg-white rounded-md shadow-sm border border-tracklete-soft overflow-hidden">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-tracklete-offwhite/50 text-tracklete-muted text-xs uppercase font-semibold">
-                    <tr>
-                      <th className="px-4 py-3 border-b border-tracklete-soft">Athlete</th>
-                      <th className="px-4 py-3 border-b border-tracklete-soft">Sleep</th>
-                      <th className="px-4 py-3 border-b border-tracklete-soft">RHR</th>
-                      <th className="px-4 py-3 border-b border-tracklete-soft">HRV</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-tracklete-soft">
-                    <tr>
-                      <td className="px-4 py-3 font-medium text-tracklete-body">Lieke</td>
-                      <td className="px-4 py-3">8h 12m</td>
-                      <td className="px-4 py-3">47</td>
-                      <td className="px-4 py-3 text-green-600 font-medium">64</td>
-                    </tr>
-                    <tr className="bg-red-50/50">
-                      <td className="px-4 py-3 font-medium text-tracklete-body">Mats <span className="ml-1 inline-block w-2 h-2 rounded-full bg-red-500"></span></td>
-                      <td className="px-4 py-3 text-red-700 font-medium">6h 02m</td>
-                      <td className="px-4 py-3 text-red-700 font-medium">54</td>
-                      <td className="px-4 py-3 text-red-700 font-medium">49</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-3 font-medium text-tracklete-body">Roos</td>
-                      <td className="px-4 py-3">7h 44m</td>
-                      <td className="px-4 py-3">48</td>
-                      <td className="px-4 py-3 text-green-600 font-medium">61</td>
-                    </tr>
-                  </tbody>
-                </table>
+                {/* Heart rate zone chart */}
+                <div>
+                  {/* Legend */}
+                  <div className="flex items-center gap-3 flex-wrap mb-3 text-xs text-tracklete-muted">
+                    {[
+                      { label: 'Rest',   color: '#e2e8f0' },
+                      { label: 'Zone 1', color: '#94a3b8' },
+                      { label: 'Zone 2', color: '#38bdf8' },
+                      { label: 'Zone 3', color: '#4ade80' },
+                      { label: 'Zone 4', color: '#fbbf24' },
+                      { label: 'Zone 5', color: '#f87171' },
+                    ].map(z => (
+                      <span key={z.label} className="flex items-center gap-1">
+                        <span style={{display:'inline-block',width:11,height:11,background:z.color,borderRadius:2,flexShrink:0,border:'1px solid rgba(0,0,0,0.06)'}}/>
+                        {z.label}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Stacked bar SVG */}
+                  <svg viewBox="0 0 460 58" className="w-full block">
+                    {/* Row label */}
+                    <text x="0" y="27" fontSize="8.5" fill="#9ca3af" dominantBaseline="middle">Week 23</text>
+                    {/* Stacked bar */}
+                    {(() => {
+                      const zones = [
+                        { min: 90, color: '#e2e8f0' },
+                        { min: 50, color: '#94a3b8' },
+                        { min: 55, color: '#38bdf8' },
+                        { min: 15, color: '#4ade80' },
+                        { min:  8, color: '#fbbf24' },
+                        { min:  5, color: '#f87171' },
+                      ];
+                      const OX = 62, CW = 370, MAX = 250, barY = 17, barH = 18;
+                      let x = OX;
+                      return zones.map((z, i) => {
+                        const w = (z.min / MAX) * CW;
+                        const el = <rect key={i} x={x} y={barY} width={w} height={barH} fill={z.color}/>;
+                        x += w;
+                        return el;
+                      });
+                    })()}
+                    {/* Axis line */}
+                    <line x1={62} y1={35} x2={432} y2={35} stroke="#e5e7eb" strokeWidth="1"/>
+                    {/* X-axis ticks + labels */}
+                    {[0, 50, 100, 150, 200, 250].map(v => {
+                      const x = 62 + (v / 250) * 370;
+                      return (
+                        <g key={v}>
+                          <line x1={x} y1={35} x2={x} y2={38} stroke="#d1d5db" strokeWidth="1"/>
+                          <text x={x} y={47} fontSize="7.5" fill="#9ca3af" textAnchor="middle">{v}</text>
+                        </g>
+                      );
+                    })}
+                    <text x={247} y={57} fontSize="7.5" fill="#9ca3af" textAnchor="middle">Duration [min]</text>
+                  </svg>
+
+                  <p className="text-xs text-tracklete-muted mt-2">Time spent in each heart rate zone</p>
+                </div>
               </div>
             </div>
 
-            <div className="reveal-hidden stagger-1">
-              <img src="/__mockup/images/coaching-motorboat.jpg" alt="Coach in motorboat" className="w-full h-[700px] object-cover rounded-sm shadow-xl" />
-            </div>
-            
           </div>
         </div>
       </section>
