@@ -782,88 +782,153 @@ export function Homepage({ fontOverride }: { fontOverride?: string } = {}) {
       {/* Pricing */}
       <section className="py-32 bg-tracklete-offwhite">
         <div className="max-w-7xl mx-auto px-6 reveal-hidden">
-          <div className="text-center mb-16">
+          <div className="text-center mb-4">
             <h2 className="font-display text-4xl lg:text-5xl text-tracklete-accent-strong mb-4">Simple, transparent pricing.</h2>
-            <p className="text-lg text-tracklete-muted">Pay quarterly or yearly (10% off). New members can be added anytime.</p>
+            <p className="text-lg text-tracklete-muted mb-2">Pay quarterly or yearly (10% off). New members can be added anytime.</p>
+            <p className="text-sm text-tracklete-muted">Free for personal use — paid for teams and clubs.</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mt-14">
+
             {/* Personal */}
-            <div className="bg-tracklete-panel rounded-lg p-8 border border-tracklete-soft shadow-sm">
+            <div className="bg-tracklete-panel rounded-lg p-8 border border-tracklete-soft shadow-sm flex flex-col">
               <h3 className="font-semibold text-xl text-tracklete-body mb-2">Personal</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-display font-bold">Free</span>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-display font-bold text-tracklete-accent-strong">Free</span>
               </div>
-              <p className="text-sm text-tracklete-muted mb-8 h-10">For individual athletes tracking their own training.</p>
+              <p className="text-xs text-tracklete-muted mb-6">/ Member / Month</p>
+              <p className="text-sm text-tracklete-muted mb-6">For individual athletes tracking their own training.</p>
               <button className="w-full py-2.5 px-4 border-2 border-tracklete-accent text-tracklete-accent rounded-sm font-semibold hover:bg-tracklete-accent-soft transition-colors mb-6">
-                Sign Up
+                Sign Up!
               </button>
-              <ul className="space-y-3 text-sm text-tracklete-body">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Concept2 Logbook</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Strava Sync</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Personal load charts</li>
+              <div className="text-xs font-bold text-tracklete-body uppercase tracking-wider mb-3">Features</div>
+              <ul className="space-y-2.5 text-sm text-tracklete-body">
+                {['Concept2 Logbook sync','Strava import','Personal training log','Personal load charts'].map(f => (
+                  <li key={f} className="flex items-start gap-2"><Check className="w-4 h-4 text-tracklete-accent flex-shrink-0 mt-0.5" />{f}</li>
+                ))}
               </ul>
             </div>
 
             {/* Team */}
-            <div className="bg-tracklete-panel rounded-lg p-8 border border-tracklete-soft shadow-sm">
+            <div className="bg-tracklete-panel rounded-lg p-8 border border-tracklete-soft shadow-sm flex flex-col">
               <h3 className="font-semibold text-xl text-tracklete-body mb-2">Team</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-display font-bold">€2.49</span>
-                <span className="text-sm text-tracklete-muted">/ member / mo</span>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-display font-bold text-tracklete-accent-strong">€2.49</span>
               </div>
-              <p className="text-sm text-tracklete-muted mb-8 h-10">For individual crews and small squads.</p>
+              <p className="text-xs text-tracklete-muted mb-6">/ Member / Month</p>
+              <p className="text-sm text-tracklete-muted mb-6">For individual crews and small squads.</p>
               <button className="w-full py-2.5 px-4 border-2 border-tracklete-accent text-tracklete-accent rounded-sm font-semibold hover:bg-tracklete-accent-soft transition-colors mb-6">
-                Start Trial
+                Sign Up!
               </button>
-              <ul className="space-y-3 text-sm text-tracklete-body">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Everything in Personal</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Shared schedules</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Attendance tracking</li>
+              <div className="text-xs font-bold text-tracklete-body uppercase tracking-wider mb-3">Features</div>
+              <ul className="space-y-2.5 text-sm text-tracklete-body">
+                {[
+                  'Training schedules',
+                  'Ergometer tracking',
+                  'GPS & Heartrate analytics',
+                  'Automatic imports (Strava)',
+                  'Progress reports',
+                  'Track bodystats',
+                  'Crew schedules',
+                  'Member roles: Coach, Rower, Cox',
+                  'Team progress tracking',
+                  'Team leaderboards',
+                ].map(f => (
+                  <li key={f} className="flex items-start gap-2"><Check className="w-4 h-4 text-tracklete-accent flex-shrink-0 mt-0.5" />{f}</li>
+                ))}
               </ul>
             </div>
 
             {/* Club - Highlight */}
-            <div className="bg-tracklete-accent-strong rounded-lg p-8 border border-tracklete-accent-strong shadow-xl text-white relative transform md:-translate-y-4">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-tracklete-accent text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                Most Popular
+            <div className="bg-tracklete-accent-strong rounded-lg p-8 border border-tracklete-accent-strong shadow-xl text-white relative flex flex-col transform md:-translate-y-4">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-tracklete-accent text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+                Popular
               </div>
               <h3 className="font-semibold text-xl mb-2">Club</h3>
-              <div className="flex items-baseline gap-1 mb-6">
+              <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-3xl font-display font-bold">€2.99</span>
-                <span className="text-sm text-white/70">/ member / mo</span>
               </div>
-              <p className="text-sm text-white/80 mb-8 h-10">The complete platform for rowing societies.</p>
-              <button className="w-full py-2.5 px-4 bg-tracklete-accent text-white rounded-sm font-semibold hover:bg-tracklete-accent/90 transition-colors mb-6 shadow-sm">
-                Get Started
+              <p className="text-xs text-white/60 mb-6">/ Member / Month</p>
+              <p className="text-sm text-white/80 mb-6">The complete platform for rowing societies.</p>
+              <button className="w-full py-2.5 px-4 bg-tracklete-accent text-white rounded-sm font-semibold hover:opacity-90 transition-colors mb-6 shadow-sm">
+                Sign Up!
               </button>
-              <ul className="space-y-3 text-sm text-white/90">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Everything in Team</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Bodystats & Readiness</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Coach dashboards</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Unlimited coaches</li>
+              <div className="text-xs font-bold text-white/60 uppercase tracking-wider mb-3">All Team features, plus …</div>
+              <ul className="space-y-2.5 text-sm text-white/90">
+                {[
+                  'Unlimited teams and team memberships',
+                  'Extra user roles: Member, Master, Profcoach',
+                  'Advanced graphing and reporting',
+                  'Head-Coaching schedule',
+                  'Club-Wide leaderboards',
+                ].map(f => (
+                  <li key={f} className="flex items-start gap-2"><Check className="w-4 h-4 flex-shrink-0 mt-0.5" style={{color:'#0d7377'}} />{f}</li>
+                ))}
               </ul>
             </div>
 
             {/* Elite */}
-            <div className="bg-tracklete-panel rounded-lg p-8 border border-tracklete-soft shadow-sm">
+            <div className="bg-tracklete-panel rounded-lg p-8 border border-tracklete-soft shadow-sm flex flex-col">
               <h3 className="font-semibold text-xl text-tracklete-body mb-2">Elite</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-3xl font-display font-bold">€9.49</span>
-                <span className="text-sm text-tracklete-muted">/ member / mo</span>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-3xl font-display font-bold text-tracklete-accent-strong">€9.49</span>
               </div>
-              <p className="text-sm text-tracklete-muted mb-8 h-10">For national federations and elite programmes.</p>
-              <button className="w-full py-2.5 px-4 border-2 border-tracklete-accent text-tracklete-accent rounded-sm font-semibold hover:bg-tracklete-accent-soft transition-colors mb-6">
-                Contact Sales
+              <p className="text-xs text-tracklete-muted mb-6">/ Member / Month</p>
+              <p className="text-sm text-tracklete-muted mb-6">For national federations and elite programmes.</p>
+              <button className="w-full py-2.5 px-4 bg-tracklete-accent-strong text-white rounded-sm font-semibold hover:opacity-90 transition-colors mb-6">
+                Contract Us
               </button>
-              <ul className="space-y-3 text-sm text-tracklete-body">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Everything in Club</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Medical API access</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-tracklete-accent" /> Custom reporting</li>
+              <div className="text-xs font-bold text-tracklete-body uppercase tracking-wider mb-3">All Club features, plus …</div>
+              <ul className="space-y-2.5 text-sm text-tracklete-body">
+                {[
+                  'Telemetry',
+                  'Custom analyses',
+                  'Priority support',
+                  'Third party integrations',
+                ].map(f => (
+                  <li key={f} className="flex items-start gap-2"><Check className="w-4 h-4 text-tracklete-accent flex-shrink-0 mt-0.5" />{f}</li>
+                ))}
               </ul>
             </div>
-            
+
+          </div>
+        </div>
+      </section>
+
+      {/* Team Members */}
+      <section className="py-32 bg-tracklete-panel bg-grid">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16 reveal-hidden">
+            <div className="inline-block px-3 py-1 bg-tracklete-accent-soft text-tracklete-accent font-semibold text-xs uppercase tracking-widest mb-6">Our Team</div>
+            <h2 className="font-display text-4xl lg:text-5xl text-tracklete-accent-strong mb-4">The brains of Tracklete.</h2>
+            <p className="text-lg text-tracklete-muted">A team of rowers and engineers building the tools they always wished existed.</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto reveal-hidden stagger-1">
+            {[
+              { name: 'Hidde de Vries',      role: 'Co-founder'         },
+              { name: 'Daan Versteeg',       role: 'Co-founder'         },
+              { name: 'Carsten Hanekamp',    role: 'Software Engineer'  },
+              { name: 'Ferron van Zomeren',  role: 'Software Engineer'  },
+              { name: 'Tames de Buck',       role: 'Software Engineer'  },
+              { name: 'Maximilian Messmer',  role: 'Software Engineer'  },
+              { name: 'Daan van Vugt',       role: 'Software Engineer'  },
+              { name: 'Stef Schenkelaars',   role: 'Software Engineer'  },
+            ].map((m) => {
+              const initials = m.name.split(' ').filter((_,i,a)=>i===0||i===a.length-1).map(w=>w[0]).join('');
+              return (
+                <div key={m.name} className="flex flex-col items-center text-center group">
+                  <div
+                    className="w-24 h-24 rounded-sm bg-tracklete-accent-soft flex items-center justify-center mb-4 shadow-sm border border-tracklete-soft group-hover:border-tracklete-accent transition-colors"
+                    style={{fontSize:'1.4rem', fontWeight:600, color:'#0f4d52', fontFamily:'inherit', letterSpacing:'-0.02em'}}
+                  >
+                    {initials}
+                  </div>
+                  <div className="font-semibold text-tracklete-body text-sm leading-tight mb-1">{m.name}</div>
+                  <div className="text-xs text-tracklete-muted uppercase tracking-wider font-medium">{m.role}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
